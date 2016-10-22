@@ -32,7 +32,7 @@ begin
 		6:a6<=in;
 		7:a7<=in;
 		8:a8<=in;
-		default:
+		default: //default NO LATCH
 		begin
 			a0<=a0;
 			a1<=a1;
@@ -46,7 +46,7 @@ begin
 		end
 	endcase
 	
-	else if(mode_tmp>=1&&mode_tmp<=7) //operations and step remain 9
+	else if(mode_tmp>=1&&mode_tmp<=7) //Matrix operation
 	begin
 		case(mode_tmp)
 		1:
@@ -122,7 +122,7 @@ begin
 			if(a8==7) a8<=7;
 			else a8<=a8+1;
 		end
-		default
+		default //default NO LATCH
 		begin
 			a0<=a0;
 			a1<=a1;
@@ -137,7 +137,7 @@ begin
 		endcase
 	end
 	
-	else
+	else //default NO LATCH
 	begin
 		a0<=a0;
 		a1<=a1;
@@ -155,59 +155,65 @@ always@(posedge clk or negedge rst_n) // clock count step (ascually only for inp
 begin
 	if(!rst_n)
 		step<=0;
-	else if(!out_cnt&&in_valid)
+	else if(!out_cnt&&in_valid) //input(include mode input) in progress
 		step<=step+1;
 	else
-		step<=0;
+		step<=0; //default NO LATCH
 end
-
+//ready manipulation
 always@(posedge clk or negedge rst_n)
 begin
 	if(!rst_n)
 		ready<=0;
-	else if(!out_valid)
+	else if(!out_valid) //mode1~7(include the default one:8 while input is in progress) will let ready=1 to let data in
 		ready<=1;
-	else if(out_cnt==10)
-		ready<=1;
+	else if(!out_valid&&!mode_tmp) //reach mode 0 , ready to output
+		ready<=0;
 	else
 		ready<=0;
 		
 end
-
+//mode storage manipulation
 always@(posedge clk or negedge rst_n)
 begin
 	if(!rst_n)
+		mode_tmp<=8;
+	else if(out_cnt>=10) //mode_tmp to default 8 (since we do operation between 1~7)
 		mode_tmp<=8;
 	else if(mode) //mode in (do operations and save the mode)
 		mode_tmp<=mode;
-	else if(!mode)
+	else if(!mode) //mode in (MODE TERMINATION)
 		mode_tmp<=mode;
-	else if(out_cnt>=10)
-		mode_tmp<=8;
-	else 
+	else if(!mode_tmp)
 		mode_tmp<=mode_tmp;
+	
+	else //neet to be 8 (since if in 03 GATE, it will be x ans further affect out_cnt,out valid,causing error
+		// also for the purpose which wants default to be NO LATCH
+		//should be the lowest priority, or will cause mode_tmp change to 0 when still in mode input (matrix manipulation)
+		mode_tmp<=8; 
+		
 end
 
-
+//out_valid manipulation
 always@(posedge clk or negedge rst_n)
 begin
 	if(!rst_n)
 		out_valid<=0;
-	else if(out_cnt>=1&&out_cnt<=9)
+	else if(out_cnt>=1&&out_cnt<=9) //only the output part (which means out_valid between1~9 will set out_valid=1)
 		out_valid<=1;
 	else
-		out_valid<=0;
+		out_valid<=0; //default NO LATCH
 end
-
+//output manipulation
 always@(posedge clk or negedge rst_n)
 begin
 	if(!rst_n)
 		out<=0;
-	else if(mode_tmp)
+	else if(mode_tmp) //in the input part, out_cnt should be 0(include the mode being 1~8)
 		out_cnt<=0;
-	else if(!mode_tmp&&out_cnt==0)
+	else if(!mode_tmp&&out_cnt==0) //if we reach the mode==0 and out_cnt is still==0 , that means output will now in progress
 		out_cnt<=1;
-	else if(out_cnt>=1&&out_cnt<=10)
+	else if(out_cnt>=1&&out_cnt<=10) //output in progress
 	begin
 		
 		case(out_cnt)
@@ -264,25 +270,7 @@ begin
 		
 		endcase
 	end
-	else
+	else //default NO LATCH
 	out<=0;
 end
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
