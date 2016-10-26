@@ -1,0 +1,259 @@
+module IMPOR(in,mode,in_valid,clk,rst_n,out,out_valid,ready);
+input [2:0] in,mode;
+input in_valid,clk,rst_n;
+output reg [2:0]out;
+output reg out_valid,ready;
+reg [3:0] mode_tmp;
+reg [2:0] a0,a1,a2,a3,a4,a5,a6,a7,a8;
+reg [4:0] step,out_cnt;
+
+parameter IDLE=0,INPUT=1,EX=2,OUTPUT=3;//enum
+reg [1:0] current_state,next_state;
+//FSM change state
+always@(posedge clk or negedge rst_n)
+begin
+	if(!rst_n)current_state<=IDLE;
+	else current_state<=next_state;
+end
+
+always@(*)
+begin
+	case(current_state)
+		IDLE:if(in_valid)next_state=INPUT;
+			else next_state=IDLE;
+		INPUT:if(!in_valid)next_state=EX;
+			else next_state=INPUT;		
+		EX:if(mode_tmp==0)next_state=OUTPUT;
+			else next_state=EX;	
+		OUTPUT:if(out_cnt==8)next_state=IDLE;
+			else next_state=OUTPUT;
+		default:next_state=IDLE;
+	endcase
+end
+
+ //IO
+always@(posedge clk or negedge rst_n)
+begin
+	if(!rst_n)
+	begin
+		a0<=0;
+		a1<=0;
+		a2<=0;
+		a3<=0;
+		a4<=0;
+		a5<=0;
+		a6<=0;
+		a7<=0;
+		a8<=0;
+	end
+	else if(in_valid&&current_state!=EX)
+    begin
+	case(step)
+		0:a0<=in;
+		1:a1<=in;
+		2:a2<=in;
+		3:a3<=in;
+		4:a4<=in;
+		5:a5<=in;
+		6:a6<=in;
+		7:a7<=in;
+		8:a8<=in;
+		default: //default NO LATCH
+		begin
+			a0<=a0;
+			a1<=a1;
+			a2<=a2;
+			a3<=a3;
+			a4<=a4;
+			a5<=a5;
+			a6<=a6;
+			a7<=a7;
+			a8<=a8;
+		end
+    endcase
+	end
+    
+    else if(mode_tmp>=1&&mode_tmp<=7) 
+    begin
+	case(mode_tmp)
+		1:
+		begin           
+			a0<=a2;
+			a3<=a5;
+			a6<=a8;
+			a2<=a0;
+			a5<=a3;
+			a8<=a6;
+		end
+		2:
+		begin
+			a0<=a6;
+			a1<=a7;
+			a2<=a8;
+			a6<=a0;
+			a7<=a1;
+			a8<=a2;
+		end
+		3:
+		begin          
+			a0<=a2;
+			a1<=a5;
+			a2<=a8;
+			a5<=a7;
+			a8<=a6;
+			a7<=a3;
+			a6<=a0;
+			a3<=a1;
+		end
+		4:
+		begin          
+			a0<=a6;
+			a1<=a3;
+			a2<=a0;
+			a5<=a1;
+			a8<=a2;
+			a7<=a5;
+			a6<=a8;
+			a3<=a7;
+		end
+		5:
+		begin        
+			if(a0==7) a0<=7;
+			else a0<=a0+1;
+			
+			if(a3==7) a3<=7;
+			else a3<=a3+1;
+			
+			if(a6==7) a6<=7;
+			else a6<=a6+1;
+		end
+		6:
+		begin          
+			if(a1==7) a1<=7;
+			else a1<=a1+1;
+
+			if(a4==7) a4<=7;
+			else a4<=a4+1;
+			
+			if(a7==7) a7<=7;
+			else a7<=a7+1;
+		end
+		7:
+		begin         
+			if(a2==7) a2<=7;
+			else a2<=a2+1;
+			
+			if(a5==7) a5<=7;
+			else a5<=a5+1;
+			
+			if(a8==7) a8<=7;
+			else a8<=a8+1;
+		end
+		default: //default NO LATCH
+		begin
+			a0<=a0;
+			a1<=a1;
+			a2<=a2;
+			a3<=a3;
+			a4<=a4;
+			a5<=a5;
+			a6<=a6;
+			a7<=a7;
+			a8<=a8;
+		end
+		endcase
+    end
+	else //default NO LATCH
+	begin
+		a0<=a0;
+		a1<=a1;
+		a2<=a2;
+		a3<=a3;
+		a4<=a4;
+		a5<=a5;
+		a6<=a6;
+		a7<=a7;
+		a8<=a8;
+	end
+end
+
+always@(posedge clk or negedge rst_n) // clock count step (ascually only for input)
+begin
+	if(!rst_n)
+		step<=0;
+	else if(in_valid) //input(only matrix data) in progress
+		step<=step+1;
+	else
+		step<=0; //default NO LATCH
+end
+//ready manipulation
+always@(posedge  clk)
+begin
+	if(current_state==IDLE||current_state==EX) //should rise ready before input , and ready is always going on ,and EX for second input , which is mode
+		ready<=1;
+	else //default NO LATCH
+		ready<=0;
+	
+end
+//mode storage manipulation
+always@(posedge clk or negedge rst_n)
+begin
+    if(!rst_n)
+        mode_tmp<=8;
+    else if(current_state==EX&&in_valid)
+        mode_tmp<=mode;
+    else //default NO LATCH
+        mode_tmp<=8;
+end
+
+always@(posedge clk or negedge rst_n)
+begin
+	if(!rst_n)
+		out_valid<=0;
+	else if(current_state==OUTPUT) //only the output part (which means out_valid between1~9 will set out_valid=1)
+		out_valid<=1;
+	else
+		out_valid<=0; //default NO LATCH
+end
+//output manipulation
+always@(posedge clk or negedge rst_n)
+begin
+	if(!rst_n)
+    begin
+		out<=0;
+    end
+    
+	else if(current_state==OUTPUT) //output in progress
+	begin	
+		case(out_cnt)
+			0:out<=a0;
+			1:out<=a1;
+			2:out<=a2;
+			3:out<=a3;
+			4:out<=a4;
+			5:out<=a5;
+			6:out<=a6;
+			7:out<=a7;
+			8:out<=a8;
+            default: out<=0;
+        endcase
+	end
+    
+	else //default NO LATCH
+        out<=0;
+    
+end
+
+always @(posedge clk)
+begin
+	if(current_state==OUTPUT)
+	case(out_cnt)
+		8:out_cnt<=0;
+	default
+		out_cnt<=out_cnt+1;
+	endcase
+	else //default NO LATCH
+		out_cnt<=0;
+	
+end
+endmodule
