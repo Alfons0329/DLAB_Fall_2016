@@ -25,6 +25,12 @@ reg  [35:0] out_tmp;
 reg signed [17:0] out_r,out_i;
 reg [3:0] step;
 reg mode_tmp,in_finished;
+//debug purpose
+always@(posedge clk)
+begin
+	
+	$display("Mode %d ,Step %d ,Out valid %d ,Invalid %d ,Infinish%d ,Out %d",mode_tmp,step,out_valid,in_valid,in_finished,out);
+end
 //load data
 always@(posedge clk)
 begin	
@@ -104,7 +110,7 @@ begin
 		step=step+4'd1;
 	else if(in_finished)
 		step=step+4'd1;
-	else if(step>=4'd10)
+	else if(step>=4'd10) //all the procedure is done , ready to quit
 		step=4'd0;
 	else
 		step=4'd0;
@@ -128,11 +134,12 @@ begin
 	/*NOT 4 since if look from display 3 is the right point (if 4 will cause latency since the third data comes at 3rd time wave which sym)
 	which symbolizes the end of data load when step (or namely clock wave) at 3rd is "READY TO FINISH"
 	Hence , in finished should be raised at 3 rather than 4*/
+	//there's no data in at step4, cannot conclude it to be in_finished!
 		in_finished=1;
 	else if(!in_valid&&!mode_tmp&&step==4'd9)
 		in_finished=0;   //reset in_finished after out is finished
 	else if(!in_valid&&mode_tmp&&step==4'd5)
-		in_finished=0;   //reset in_finished after out_2 is finished
+		in_finished=0;   //reset in_finished after out_2 is finished   		
 	else //default NO LATCH
 		in_finished=in_finished;
 end
@@ -156,7 +163,7 @@ always@(posedge clk)
 begin
 	if(!rst_n)
 		out=36'b0;
-	else if(in_finished)
+	else if(in_finished&&out_valid)
 	begin
 		if(!mode_tmp)
 		begin
