@@ -4,14 +4,57 @@ module final_project_top
 	rst,
 	left,
 	right,
+	PS2_Clk,
+	PS2_Din,
 	VGA_RED,
 	VGA_BLUE,
 	VGA_GREEN,
 	VGA_VSYNC,
 	VGA_HSYNC
 );
-input clk,rst,left,right;
+input clk,rst,left,right,PS2_Clk,PS2_Din;
 output  VGA_RED,VGA_BLUE,VGA_GREEN,VGA_VSYNC,VGA_HSYNC;
+
+//get the key value from keyboard module output and deal the press state
+wire stateleft,stateright,statedown,stateup;
+reg pushup,pushdown,pushleft,pushright;
+wire [9:0] get_key_value;
+keyboard_module mykeyboard_module(.rst(rst),.clk(clk),.PS2_Clk(PS2_Clk),.PS2_Din(PS2_Din),.Key_Valve(get_key_value));
+state keyboard_state_module(stateleft,stateright,statedown,stateup,clk,rst,get_key_value);
+//keyboard state for only one press
+always@(posedge clk, posedge rst) 
+begin
+	if(rst) pushup <= 0;
+	else if(stateup) pushup <= 1;
+	else if(!stateup) pushup <= 0;
+	else pushup <= pushup;
+end
+
+always@(posedge clk, posedge rst) 
+begin
+	if(rst) pushdown <= 0;
+	else if(statedown) pushdown <= 1;
+	else if(!statedown) pushdown <= 0;
+	else pushdown <= pushdown;
+end
+
+always@(posedge clk, posedge rst) 
+begin
+	if(rst) pushleft <= 0;
+	else if(stateleft) pushleft <= 1;
+	else if(!stateleft) pushleft <= 0;
+	else pushleft <= pushleft;
+end
+
+always@(posedge clk, posedge rst) 
+begin
+	if(rst) pushright <= 0;
+	else if(stateright) pushright <= 1;
+	else if(!stateright) pushright <= 0;
+	else pushright <= pushright;
+end
+//keyboard state ends here
+
 
 reg [10:0]col;
 reg [10:0]row;
@@ -67,8 +110,50 @@ assign cursor_col_2 = ball_col;
 //flying direction flag
 reg [1:0] flying_dir_flag;
 
+
+//combo sped up
+reg [25:0] pointone_limitation,combo;
+reg [25:0] pointone_counter;
+
+
+always @(posedge rst or posedge clk)
+begin
+	if(rst)
+	begin
+		cursor_row_1 <= rini + 500;
+		cursor_col_1 <= cini + 400;
+	end
+	else if (stateleft)//stateleft /* !pushleft*/)
+	begin
+		if(cursor_col_1-50<=cini)
+			cursor_col_1<=cursor_col_1;
+		else
+		begin
+			case(pointone_counter)
+			pointone_limitation:cursor_col_1<=cursor_col_1-5;
+			default:cursor_col_1<=cursor_col_1;
+			endcase		
+		end
+	end
+	else if (stateright)//stateright /*!pushleft*/)
+	begin
+		if(cursor_col_1+50>=cend)
+			cursor_col_1<=cursor_col_1;
+		else
+		begin
+			case(pointone_counter)
+			pointone_limitation:cursor_col_1<=cursor_col_1+5;
+			default:cursor_col_1<=cursor_col_1;
+			endcase
+		end	
+	end
+	else
+	begin
+		cursor_col_1<=cursor_col_1;
+	end
+end
 //halsecond counter of btn press
-reg [25:0] left_counter,right_counter; //for count up to 25000000 which is half second
+/*reg [25:0] left_counter,right_counter; //for count up to 25000000 which is half second
 always @(posedge rst or posedge clk)
 begin
 	if(rst)
@@ -124,11 +209,25 @@ begin
 	begin
 		cursor_col_1<=cursor_col_1;
 	end
-end
+end*/
 
 //ball direction module and reflecting
-reg lose,win;
-
+reg lose,win,pre_win;
+always @(posedge rst or posedge clk)
+begin
+	if(rst)
+	begin
+		pre_win<=0;
+	end
+	else
+	begin
+		case(win)
+		1:pre_win<=1;
+		default:pre_win<=0;
+		endcase
+	end
+		
+end
 always @(posedge rst or posedge clk)
 begin
 	if(rst)
@@ -234,7 +333,39 @@ begin
 end
 
 //ball flying 0.1sec counter for 0.1sec move A PIXEL
-reg [25:0] pointone_counter;
+
+always @(posedge rst or posedge clk)
+begin
+	if(rst)
+	begin
+		pointone_limitation<=500000;
+	end
+	else
+	begin
+		if(combo>=0&&combo<4)
+			pointone_limitation<=500000;
+		else if(combo>=4&&combo<9)
+			pointone_limitation<=450000;
+		else if(combo>=9&&combo<15)
+			pointone_limitation<=400000;
+		else if(combo>=15&&combo<23)
+			pointone_limitation<=350000;
+		else if(combo>=23&&combo<30)
+			pointone_limitation<=300000;
+		else if(combo>=30&&combo<35)
+			pointone_limitation<=250000;
+		else if(combo>=35&&combo<40)
+			pointone_limitation<=200000;
+		else if(combo>=40&&combo<45)
+			pointone_limitation<=150000;
+		else if(combo>=45&&combo<50)
+			pointone_limitation<=100000;
+		else
+			pointone_limitation<=50000;
+	end
+
+end
+
 always @(posedge rst or posedge clk)
 begin
 	if(rst)
@@ -244,7 +375,7 @@ begin
 	else
 	begin
 		case(pointone_counter)
-		125000:pointone_counter<=0;
+		pointone_limitation:pointone_counter<=0;
 		default:pointone_counter<=pointone_counter+1;
 		endcase
 	end
@@ -267,7 +398,7 @@ begin
 		case(flying_dir_flag)
 		0:
 		begin
-			if(pointone_counter==125000)
+			if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row-1;
 				ball_col<=ball_col+1;
@@ -280,7 +411,7 @@ begin
 		end
 		1:
 		begin
-			if(pointone_counter==125000)
+			if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row-1;
 				ball_col<=ball_col-1;
@@ -293,7 +424,7 @@ begin
 		end
 		2:
 		begin
-			if(pointone_counter==125000)
+			if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row+1;
 				ball_col<=ball_col-1;
@@ -306,7 +437,7 @@ begin
 		end
 		3:
 		begin
-			if(pointone_counter==125000)
+			if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row+1;
 				ball_col<=ball_col+1;
@@ -325,6 +456,25 @@ begin
 		end
 		endcase
 	end
+end
+
+
+always @(posedge rst or posedge clk)
+begin
+	if(rst)
+	begin
+		combo<=0;
+	end
+	else if(pre_win&&!win)
+	begin
+		combo<=combo+1;
+	end
+	else if(lose)
+	begin
+		combo<=0;
+	end
+	else
+		combo<=combo;
 end
 
 endmodule
