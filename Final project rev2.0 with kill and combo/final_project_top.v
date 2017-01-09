@@ -443,19 +443,19 @@ always @(posedge clk)
 begin
     if(combo>=98)
     begin
-        if((row-rini-150)*(row-rini-150)+(col-cini-150)*(col-cini-150)<19600)
+        if((row-rini-150)*(row-rini-150)+(col-cini-150)*(col-cini-150)<10000)
         begin
             R<=~sw_r;
             G<=~sw_g;
             B<=~sw_b;
         end
-        else if((row-rini-150)*(row-rini-150)+(col-cini-650)*(col-cini-650)<19600)
+        else if((row-rini-150)*(row-rini-150)+(col-cini-650)*(col-cini-650)<10000)
         begin
             R<=~sw_r;
             G<=~sw_g;
             B<=~sw_b;
         end
-        else if(((row-rini-300)*(row-rini-300)+(col-cini-400)*(col-cini-400)<90000)&&row>300)
+        else if(((row-rini-350)*(row-rini-350)+(col-cini-400)*(col-cini-400)<81000)&&row>350)
         begin
             R<=~sw_r;
             G<=~sw_g;
