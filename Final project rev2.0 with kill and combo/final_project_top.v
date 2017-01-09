@@ -63,14 +63,15 @@ mod10 cheatmod10_col(.clk(clk),.dividend(col-230-cini),.divisor(ten),.quotient(c
 //fever enlarge 10 times
 wire [10:0] fever_row,fever_col;
 
-mod10 fevermod10_row(.clk(clk),.dividend(row),.divisor(ten),.quotient(fever_row));
-mod10 fevermod10_col(.clk(clk),.dividend(col),.divisor(ten),.quotient(fever_col));
+mod10 fevermod10_row(.clk(clk),.dividend(row-370-rini),.divisor(ten),.quotient(fever_row));
+mod10 fevermod10_col(.clk(clk),.dividend(col-230-cini),.divisor(ten),.quotient(fever_col));
 
 //number enlarge 10 times
-wire [10:0] num_row , num_col;
+wire [10:0] num_row , num_col_ten , num_col_one;
 
-mod10 numbermod10_row(.clk(clk),.dividend(row),.divisor(ten),.quotient(num_row));
-mod10 numbermod10_col(.clk(clk),.dividend(col),.divisor(ten),.quotient(num_col));
+mod10 numbermod10_row(.clk(clk),.dividend(row-270-rini),.divisor(ten),.quotient(num_row));
+mod10 numbermod10_num_col_ten(.clk(clk),.dividend(col),.divisor(ten),.quotient(num_col_ten));
+mod10 numbermod10_num_col_one(.clk(clk),.dividend(col),.divisor(ten),.quotient(num_col_one));
 
 //combo deci and combo digi
 wire [10:0] combo_ten,combo_one;
@@ -79,8 +80,8 @@ mod10 combomod10(.clk(clk),.dividend(combo),.divisor(ten),.quotient(combo_ten),.
 //keyboard state for only one press
 
 reg [9:0] ball_row, ball_col;
-reg [9:0] cursor_row_1, cursor_col_1;
-wire [9:0] cursor_row_2, cursor_col_2;
+reg [9:0] cursor_row_1, cursor_col_1;//player position
+wire [9:0] cursor_row_2, cursor_col_2;//CPU position
 
 //graphs
 wire [244:0] fever;
@@ -467,7 +468,7 @@ begin
 		case(combo_ten)
 			0:
 			begin
-				if(num_0[num_row*8+num_col])
+				if(num_0[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -482,7 +483,7 @@ begin
 			end
 			1:
 			begin
-				if(num_0[num_row*8+num_col])
+				if(num_0[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -497,7 +498,7 @@ begin
 			end
 			2:
 			begin
-				if(num_2[num_row*8+num_col])
+				if(num_2[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -512,7 +513,7 @@ begin
 			end
 			3:
 			begin
-				if(num_3[num_row*8+num_col])
+				if(num_3[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -527,7 +528,7 @@ begin
 			end
 			4:
 			begin
-				if(num_4[num_row*8+num_col])
+				if(num_4[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -542,7 +543,7 @@ begin
 			end
 			5:
 			begin
-				if(num_5[num_row*8+num_col])
+				if(num_5[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -557,7 +558,7 @@ begin
 			end
 			6:
 			begin
-			if(num_6[num_row*8+num_col])
+			if(num_6[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -572,7 +573,7 @@ begin
 			end
 			7:
 			begin
-			if(num_7[num_row*8+num_col])
+			if(num_7[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -587,7 +588,7 @@ begin
 			end
 			8:
 			begin
-			if(num_8[num_row*8+num_col])
+			if(num_8[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -602,7 +603,7 @@ begin
 			end
 			9:
 			begin
-			if(num_9[num_row*8+num_col])
+			if(num_9[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -628,7 +629,7 @@ begin
 		case(combo_one)
 			0:
 			begin
-				if(num_0[num_row*8+num_col])
+				if(num_0[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -643,7 +644,7 @@ begin
 			end
 			1:
 			begin
-				if(num_0[num_row*8+num_col])
+				if(num_0[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -658,7 +659,7 @@ begin
 			end
 			2:
 			begin
-				if(num_2[num_row*8+num_col])
+				if(num_2[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -673,7 +674,7 @@ begin
 			end
 			3:
 			begin
-				if(num_3[num_row*8+num_col])
+				if(num_3[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -688,7 +689,7 @@ begin
 			end
 			4:
 			begin
-				if(num_4[num_row*8+num_col])
+				if(num_4[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -703,7 +704,7 @@ begin
 			end
 			5:
 			begin
-				if(num_5[num_row*8+num_col])
+				if(num_5[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -718,7 +719,7 @@ begin
 			end
 			6:
 			begin
-			if(num_6[num_row*8+num_col])
+			if(num_6[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -733,7 +734,7 @@ begin
 			end
 			7:
 			begin
-			if(num_7[num_row*8+num_col])
+			if(num_7[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -748,7 +749,7 @@ begin
 			end
 			8:
 			begin
-			if(num_8[num_row*8+num_col])
+			if(num_8[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -763,7 +764,7 @@ begin
 			end
 			9:
 			begin
-			if(num_9[num_row*8+num_col])
+			if(num_9[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
