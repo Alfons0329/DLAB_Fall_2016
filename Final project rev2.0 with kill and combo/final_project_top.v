@@ -472,6 +472,7 @@ always @(posedge clk)
 begin
     if(combo>=98)
     begin
+<<<<<<< HEAD
         if((row>=rini+100)&&(row<rini+355)&&(col>=cini+100)&&(col<cini+700)&&pusheen[pusheen_row*40+pusheen_col])
         begin
             R<=onesec;
@@ -479,6 +480,28 @@ begin
             B<=~sw_b;          
         end
         else if((col>=cini)&&(col<=cend)&&(row>=rini)&&(row<=rend))
+=======
+        if((row-rini-150)*(row-rini-150)+(col-cini-150)*(col-cini-150)<10000)
+        begin
+            R<=~sw_r;
+            G<=~sw_g;
+            B<=~sw_b;
+        end
+        else if((row-rini-150)*(row-rini-150)+(col-cini-650)*(col-cini-650)<10000)
+        begin
+            R<=~sw_r;
+            G<=~sw_g;
+            B<=~sw_b;
+        end
+        else if(((row-rini-350)*(row-rini-350)+(col-cini-400)*(col-cini-400)<81000)&&row>350)
+        begin
+            R<=~sw_r;
+            G<=~sw_g;
+            B<=~sw_b;
+        
+        end
+        else if((col>=cini)&(col<=cend)&(row>=rini)&(row<=rend))
+>>>>>>> d4bda7d870858dc65c184a6010898d7e306d9584
         begin //back ground
             R<=sw_r;
             G<=sw_g;
