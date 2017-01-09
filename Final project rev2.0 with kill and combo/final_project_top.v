@@ -4,10 +4,10 @@ module final_project_top
 	rst,
 	left,
 	right,
-  sw_cheat,/*sw3*/
-  sw_r,/*sw2*/
-  sw_g,/*sw1*/
-  sw_b,/*sw0*/
+    sw_cheat,/*sw3*/
+    sw_r,/*sw2*/
+    sw_g,/*sw1*/
+    sw_b,/*sw0*/
 	PS2_Clk,
 	PS2_Din,
 	VGA_RED,
@@ -70,12 +70,26 @@ mod10 fevermod10_col(.clk(clk),.dividend(col-230-cini),.divisor(ten),.quotient(f
 wire [10:0] num_row , num_col_ten , num_col_one;
 
 mod10 numbermod10_row(.clk(clk),.dividend(row-270-rini),.divisor(ten),.quotient(num_row));
-mod10 numbermod10_num_col_ten(.clk(clk),.dividend(col),.divisor(ten),.quotient(num_col_ten));
-mod10 numbermod10_num_col_one(.clk(clk),.dividend(col),.divisor(ten),.quotient(num_col_one));
+
+mod10 numbermod10_num_col_ten(.clk(clk),.dividend(col-230-cini),.divisor(ten),.quotient(num_col_ten));
+mod10 numbermod10_num_col_one(.clk(clk),.dividend(col-500-cini),.divisor(ten),.quotient(num_col_one));
 
 //combo deci and combo digi
+reg [8:0] combo;
 wire [10:0] combo_ten,combo_one;
 mod10 combomod10(.clk(clk),.dividend(combo),.divisor(ten),.quotient(combo_ten),.fractional(combo_one));
+
+
+
+//pusheen the nibble cat
+wire [10:0] pusheen_row,pusheen_col;
+wire [5:0] one;
+assign one = 1;
+mod10 pusheenmod10_row(.clk(clk),.dividend(row-100-rini),.divisor(one),.quotient(pusheen_row));
+mod10 pusheenmod10_col(.clk(clk),.dividend(col-100-cini),.divisor(one),.quotient(pusheen_col));
+
+
+
 
 //keyboard state for only one press
 
@@ -139,7 +153,7 @@ assign num_2[ 3 * 8 - 1: 2 * 8]= 8'b01100110;
 assign num_2[ 4 * 8 - 1: 3 * 8]= 8'b00110000;
 assign num_2[ 5 * 8 - 1: 4 * 8]= 8'b00011100;
 assign num_2[ 6 * 8 - 1: 5 * 8]= 8'b00000110;
-assign num_2[ 7 * 8 - 1: 6 * 8]= 8'b00000011;
+assign num_2[ 7 * 8 - 1: 6 * 8]= 8'b00000110;
 assign num_2[ 8 * 8 - 1: 7 * 8]= 8'b01111110;
 assign num_2[ 9 * 8 - 1: 8 * 8]= 8'b00000000;
 
@@ -213,7 +227,24 @@ assign num_9[ 7 * 8 - 1: 6 * 8]= 8'b01100110;
 assign num_9[ 8 * 8 - 1: 7 * 8]= 8'b00111100;
 assign num_9[ 9 * 8 - 1: 8 * 8]= 8'b00000000;
 
-
+wire [679:0] pusheen;
+assign pusheen [1*40  - 1 :0 *40] =40'b0000000000000000000000000000000000000000;
+assign pusheen [2*40  - 1 :1 *40] =40'b0000111000000011100011111110000000000000;
+assign pusheen [3*40  - 1 :2 *40] =40'b0001100111111100111101101101110000000000;
+assign pusheen [4*40  - 1 :3 *40] =40'b0001000010101000000000000000001100000000;
+assign pusheen [5*40  - 1 :4 *40] =40'b0001000000000000000100000000000011000000;
+assign pusheen [6*40  - 1 :5 *40] =40'b0010001100100110001000000000000000100000;
+assign pusheen [7*40  - 1 :6 *40] =40'b0110000001010000001100000000000000100000;
+assign pusheen [8*40  - 1 :7 *40] =40'b0100000000000000000000000000000000011100;
+assign pusheen [9*40  - 1 :8 *40] =40'b0100000000000000000000000000000000011010;
+assign pusheen [10*40 - 1 :9 *40] =40'b0100000000000000000000000000000000011010;
+assign pusheen [11*40 - 1 :10*40] =40'b0100000000000000000000000000000000010000;
+assign pusheen [12*40 - 1 :11*40] =40'b0010000000000000000000000000000000100000;
+assign pusheen [13*40 - 1 :12*40] =40'b0010000000000000000000000000000000100000;
+assign pusheen [14*40 - 1 :13*40] =40'b0001000000000000000000000000000001000000;
+assign pusheen [15*40 - 1 :14*40] =40'b0001100011100011111111111111111111000000;
+assign pusheen [16*40 - 1 :15*40] =40'b0000011100011100000000000000000000000000;
+assign pusheen [17*40 - 1 :16*40] =40'b0000000000000000000000000000000000000000;
 
 always@(posedge clk, posedge rst) 
 begin
@@ -268,13 +299,13 @@ reg [1:0] flying_dir_flag;
 //combo sped up
 reg [25:0] pointone_limitation;
 reg [25:0] pointone_counter;
-reg [8:0] combo;
+
 
 always @(posedge rst or posedge clk)
 begin
 	if(rst)
 	begin
-		cursor_row_1 <= rini + 550;
+		cursor_row_1 <= rini + 500;
 		cursor_col_1 <= cini + 400;
 	end
 	else if (stateleft)
@@ -354,6 +385,7 @@ begin
 		
 end
 
+//reflecting principle
 always @(posedge rst or posedge clk)
 begin
 	if(rst)
@@ -416,9 +448,13 @@ begin
 		end
 	end
 end
+//fever time 
+wire fever_time;
+assign fever_time = (combo>=30) ? 1:0;
 
-//pad and ball colorwise
-//ball and pad color changing // with halfsecond counter
+
+
+
 
 reg [26:0] oneseccnt;
 reg onesec,onesec2;
@@ -430,20 +466,44 @@ begin
 end
 
 //graphic drawing
+//pad and ball colorwise
+//ball and pad color changing // with halfsecond counter
 always @(posedge clk)
 begin
-	if(((row-ball_row)*(row-ball_row)+(col-ball_col)*(col-ball_col))<100) // ball
+    if(combo>=98)
+    begin
+        if((row>=rini+100)&&(row<rini+355)&&(col>=cini+100)&&(col<cini+700)&&pusheen[pusheen_row*40+pusheen_col])
+        begin
+            R<=onesec;
+            G<=~sw_g;
+            B<=~sw_b;          
+        end
+        else if((col>=cini)&&(col<=cend)&&(row>=rini)&&(row<=rend))
+        begin //back ground
+            R<=sw_r;
+            G<=sw_g;
+            B<=sw_b;
+        end
+        else
+        begin
+            R<=0;
+            G<=0;
+            B<=0;
+        end
+    end
+	else if(stateup&&(((row-ball_row)*(row-ball_row)+(col-ball_col)*(col-ball_col))<100)) // force killing ball  the ball is yellow
+	begin
+		R<=1;
+		G<=1;
+		B<=0;
+	end 
+    else if(((row-ball_row)*(row-ball_row)+(col-ball_col)*(col-ball_col))<100) // ball
 	begin
 		R<=1;
 		G<=0;
 		B<=0;
 	end
-	else if(killer&&(((row-ball_row)*(row-ball_row)+(col-ball_col)*(col-ball_col))<100)) // force killing ball  the ball is yellow
-	begin
-		R<=1;
-		G<=1;
-		B<=0;
-	end
+	
 	else if((col>=cursor_col_1-50)&&(col<=cursor_col_1+50)&&(row>=cursor_row_1-10)&&(row<=cursor_row_1+10)) //player's pad color
 	begin
 		R<=onesec2;
@@ -483,7 +543,7 @@ begin
 			end
 			1:
 			begin
-				if(num_0[num_row*8+num_col_ten])
+				if(num_1[num_row*8+num_col_ten])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -644,7 +704,7 @@ begin
 			end
 			1:
 			begin
-				if(num_0[num_row*8+num_col_one])
+				if(num_1[num_row*8+num_col_one])
 				begin
 					R<=~sw_r;
 					G<=~sw_g;
@@ -785,7 +845,7 @@ begin
 			end
 		endcase
 	end
-	else if(fever&&(row>=rini+370)&&(row<rini+440)&&(col>=cini+250)&&(col<cini+600)&&(fever[fever_row*35+fever_col])) //fever
+	else if(fever_time&&(row>=rini+370)&&(row<rini+440)&&(col>=cini+250)&&(col<cini+600)&&(fever[fever_row*35+fever_col])) //fever
 	begin
 		R<=~sw_r;
 		G<=~sw_g;
@@ -813,10 +873,6 @@ begin
 	if(rst)
 	begin
 		pointone_limitation<=500000;
-	end
-	else if(killer)
-	begin
-		pointone_limitation<=10000; //for force killing ball
 	end
 	else 
 	begin
@@ -877,7 +933,12 @@ begin
 		case(flying_dir_flag)
 		0:
 		begin
-			if(pointone_counter==pointone_limitation)
+            if(pointone_counter==pointone_limitation&&stateup)
+            begin
+                ball_row<=ball_row-5;
+				ball_col<=ball_col+5;
+            end
+			else if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row-1;
 				ball_col<=ball_col+1;
@@ -890,7 +951,12 @@ begin
 		end
 		1:
 		begin
-			if(pointone_counter==pointone_limitation)
+			if(pointone_counter==pointone_limitation&&stateup)
+            begin
+                ball_row<=ball_row-5;
+				ball_col<=ball_col-5;
+            end
+			else if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row-1;
 				ball_col<=ball_col-1;
@@ -903,7 +969,12 @@ begin
 		end
 		2:
 		begin
-			if(pointone_counter==pointone_limitation)
+            /*if(pointone_counter==pointone_limitation&&stateup)
+            begin
+                ball_row<=ball_row+5;
+				ball_col<=ball_col-5;
+            end
+			else*/ if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row+1;
 				ball_col<=ball_col-1;
@@ -916,7 +987,12 @@ begin
 		end
 		3:
 		begin
-			if(pointone_counter==pointone_limitation)
+            /*if(pointone_counter==pointone_limitation&&stateup)
+            begin
+                ball_row<=ball_row+5;
+				ball_col<=ball_col+5;
+            end
+			else */if(pointone_counter==pointone_limitation)
 			begin
 				ball_row<=ball_row+1;
 				ball_col<=ball_col+1;
@@ -936,9 +1012,7 @@ begin
 		endcase
 	end
 end
-//fever time 
-wire fever_time;
-assign fever_time = (combo>=30) ? 1:0;
+
 
 always @(posedge rst or posedge clk)
 begin
