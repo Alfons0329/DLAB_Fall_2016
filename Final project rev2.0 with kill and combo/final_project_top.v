@@ -74,7 +74,7 @@ mod10 numbermod10_col(.clk(clk),.dividend(col),.divisor(ten),.quotient(num_col))
 
 //combo deci and combo digi
 wire [10:0] combo_ten,combo_one;
-mod10 numbermod10_col(.clk(clk),.dividend(col),.divisor(ten),.quotient(combo_ten),.fractional(combo_one));
+mod10 combomod10(.clk(clk),.dividend(combo),.divisor(ten),.quotient(combo_ten),.fractional(combo_one));
 
 //keyboard state for only one press
 
